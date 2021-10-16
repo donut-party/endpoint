@@ -1,8 +1,11 @@
 (ns donut.endpoint.middleware
   (:require [clojure.stacktrace :as cst]
+            [muuntaja.core :as m]
+            [reitit.ring :as rr]
+            [reitit.ring.coercion :as rrc]
+            [reitit.ring.middleware.muuntaja :as rrmm]
+            [reitit.ring.middleware.parameters :as rrmp]
             [ring.middleware.defaults :as ring-defaults]
-            #_[ring.middleware.format :as f]
-            #_[ring.middleware.format-params :as fp]
             [ring.middleware.gzip :as ring-gzip]
             #_[ring.middleware.stacktrace :as ring-stacktrace]))
 
@@ -26,6 +29,12 @@
                                     [:parameters :form]
                                     [:parameters :multipart]]))
         f)))
+
+(defn wrap-muuntaja-encode
+  [f]
+  (fn [req]
+    (-> (f req)
+        (assoc :muuntaja/encode true))))
 
 (defn wrap-format-exception
   "Catches exceptions and returns a formatted response."
@@ -106,8 +115,16 @@
       (wrap wrap-latency (get-in config [:latency] false))
       (wrap wrap-not-found (get-in config [:not-found] true))))
 
-(defn middleware
+(defn app-middleware
   [handler]
   (-> handler
       (ring-defaults/wrap-defaults ring-defaults-config)
       (wrap-defaults endpoint-defaults-config)))
+
+(def route-middleware
+  [rrmp/parameters-middleware
+   rrmm/format-middleware
+   rrc/coerce-request-middleware
+   rrc/coerce-response-middleware
+   wrap-merge-params
+   wrap-muuntaja-encode])
