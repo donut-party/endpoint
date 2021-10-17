@@ -1,7 +1,5 @@
 (ns donut.endpoint.middleware
   (:require [clojure.stacktrace :as cst]
-            [muuntaja.core :as m]
-            [reitit.ring :as rr]
             [reitit.ring.coercion :as rrc]
             [reitit.ring.middleware.muuntaja :as rrmm]
             [reitit.ring.middleware.parameters :as rrmp]
