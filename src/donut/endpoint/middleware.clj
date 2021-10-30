@@ -100,6 +100,9 @@
    :latency     false
    :merge-parms true})
 
+(def app-middleware-config
+  (merge ring-defaults-config endpoint-defaults-config))
+
 (defn- wrap [handler middleware options]
   (if (true? options)
     (middleware handler)
@@ -114,10 +117,15 @@
       (wrap wrap-not-found (get-in config [:not-found] true))))
 
 (defn app-middleware
-  [handler]
+  [handler & [config]]
   (-> handler
-      (ring-defaults/wrap-defaults ring-defaults-config)
-      (wrap-defaults endpoint-defaults-config)))
+      (ring-defaults/wrap-defaults (or config app-middleware-config))
+      (wrap-defaults (or config app-middleware-config))))
+
+(def AppMiddlewareComponent
+  {:start (fn [conf _ _]
+            (fn [handler] (app-middleware handler conf)))
+   :conf  app-middleware-config})
 
 (def route-middleware
   [rrmp/parameters-middleware
