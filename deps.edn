@@ -1,12 +1,17 @@
 {:paths ["src"]
  :deps  {bk/ring-gzip              {:mvn/version "0.3.0"}
+         club.donutpower/sugar     {:mvn/version "0.0.9"}
          org.clojure/clojure       {:mvn/version "1.10.3"}
+         medley/medley             {:mvn/version "1.3.0"}
+         meta-merge/meta-merge     {:mvn/version "1.0.0"}
+         metosin/malli             {:mvn/version "0.6.1"}
          metosin/reitit-ring       {:mvn/version "0.5.15"}
          metosin/reitit-malli      {:mvn/version "0.5.15"}
          metosin/reitit-middleware {:mvn/version "0.5.15"}
          ring/ring                 {:mvn/version "1.9.4"}}
 
  :aliases
- {:build {:deps       {io.github.seancorfield/build-clj
+ {:dev   {:extra-paths ["test"]}
+  :build {:deps       {io.github.seancorfield/build-clj
                        {:git/tag "v0.1.2" :git/sha "0719a09"}}
           :ns-default build}}}
