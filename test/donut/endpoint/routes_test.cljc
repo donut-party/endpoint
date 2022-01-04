@@ -154,7 +154,7 @@
                                                                     [:member     {::sut/path-prefix "/api/v1"}]]}])))))
 
 (deftest merge-handlers-test
-  (testing "merges the handlers in 'handlers with route opts"
+  (testing "merges the handlers in donut.endpoint.routes-load-handlers/handlers with route opts"
     (is (= [["/routes-load-handlers"
              {::sut/ns   :donut.endpoint.routes-load-handlers
               ::sut/type :collection

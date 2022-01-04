@@ -74,8 +74,7 @@
             [malli.core :as m]
             [malli.error :as me]
             [meta-merge.core :as mm]
-            #?@(:cljs [[goog.string :as gstr]
-                       [goog.string.format]])))
+            #?@(:cljs [[goog.string.format]])))
 
 ;;------
 ;; specs
@@ -315,6 +314,10 @@
                          {}))))
 
      (defn merge-handlers
+       "For each donut endpoint route, looks up the var `handlers` in the corresponding
+        namespace, then looks up `:collection`, `:member`, etc. The value returned
+        gets merged directly into the route's options. It should be a valid map for a reitit route,
+        e.g. `{:get {:handler ...}}`"
        ([routes]
         (merge-handlers routes 'handlers))
        ([routes handlers-sym]
@@ -325,6 +328,7 @@
                     (when-not (find-ns ns-name)
                       (throw (ex-info (str "endpoint ns " ns-name " referenced but not required") {})))
                     (update r 1 merge (get (resolve-handlers ns-name handlers-sym)
+                                           ;; ::type is :collection, :member, etc
                                            (::type opts))))
                   r))
               routes)))))

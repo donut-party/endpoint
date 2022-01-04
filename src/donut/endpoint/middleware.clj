@@ -1,4 +1,8 @@
 (ns donut.endpoint.middleware
+  "Defines a default middleware stack for donut apps.
+
+
+  "
   (:require [clojure.stacktrace :as cst]
             [reitit.ring.coercion :as rrc]
             [reitit.ring.middleware.muuntaja :as rrmm]
@@ -8,7 +12,7 @@
             #_[ring.middleware.stacktrace :as ring-stacktrace]))
 
 (defn wrap-merge-params
-  "Some middleware puts params in :body-params. Move it to :params"
+  "Merge all params maps, place under `:all-params`"
   [f]
   (fn [req]
     (-> req
@@ -29,13 +33,15 @@
         f)))
 
 (defn wrap-muuntaja-encode
+  "TODO we want to muuntaja/encode because..."
   [f]
   (fn [req]
     (-> (f req)
         (assoc :muuntaja/encode true))))
 
 (defn wrap-format-exception
-  "Catches exceptions and returns a formatted response."
+  "Catches exceptions and returns a formatted response.
+  TODO update this to use segment response?"
   [f {:keys [include-data]}]
   (fn [req]
     (try (f req)
@@ -63,7 +69,9 @@
 
 (defn wrap-not-found
   "Middleware that returns a 404 'Not Found' response from an error handler if
-  the base handler returns nil."
+  the base handler returns nil.
+
+  Used to provide the index.html file by default for frontend routes"
   ([handler]
    (wrap-not-found handler identity))
   ([handler error-handler]
@@ -123,6 +131,7 @@
       (wrap-defaults (or config app-middleware-config))))
 
 (def AppMiddlewareComponent
+  "A donut.system component that applies configured middleware to a handler"
   {:start (fn [conf _ _]
             (fn [handler] (app-middleware handler conf)))
    :conf  app-middleware-config})
