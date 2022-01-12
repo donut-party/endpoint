@@ -205,7 +205,7 @@
                    ::path  (fn [{:keys [id-key] :as o}]
                              (u/fmt "/%s/{%s}/%s"
                                     (u/slash (::base-name o))
-                                    (u/ksubs id-key)
+                                    (u/full-name id-key)
                                     (name expander)))}
                   opts))
 
@@ -228,7 +228,7 @@
                    ::path  (fn [{:keys [id-key] :as o}]
                              (u/fmt "/%s/{%s}"
                                     (u/slash base-name)
-                                    (u/ksubs id-key)))}
+                                    (u/full-name id-key)))}
                   opts))
 
 ;; singletons use the :collection path and the :member name
@@ -256,8 +256,14 @@
      (let [base-name (-> (str ns)
                          (str/split delimiter)
                          (second))
+           ent-type  (-> base-name
+                         (str/split #"\.")
+                         last
+                         keyword)
            expanders (::expand-with opts [:collection :member])
-           opts      (assoc opts ::base-name base-name)]
+           opts      (assoc opts
+                            ::base-name base-name
+                            :ent-type ent-type)]
        (when-let [explanation (m/explain ExpandWith expanders)]
          (throw (ex-info (str "Invalid route expanders for " ns)
                          {:explain       explanation
