@@ -252,7 +252,7 @@
   as-is (it's probably a regular reitit route).
 
   `delimiter` is a regex used to specify what part of the name to
-  ignore. By convention Sweet Tooth expects you to use names like
+  ignore. By convention Donut expects you to use names like
   `:my-app.backend.endpoint.user`, but you want to just use `user` to
   generate paths and route names - that's what the delimiter is for."
   ([pair] (expand-route pair nil #"endpoint\."))
