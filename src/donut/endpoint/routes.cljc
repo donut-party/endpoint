@@ -201,7 +201,6 @@
   (generate-route nsk
                   expander
                   {:name   (keyword base-name (name expander))
-                   :id-key :id
                    ::path  (fn [{:keys [id-key] :as o}]
                              (u/fmt "/%s/{%s}/%s"
                                     (u/slash (::base-name o))
@@ -224,7 +223,6 @@
   (generate-route nsk
                   expander
                   {:name   (keyword base-name)
-                   :id-key :id
                    ::path  (fn [{:keys [id-key] :as o}]
                              (u/fmt "/%s/{%s}"
                                     (u/slash base-name)
@@ -241,6 +239,13 @@
                    ::path (str "/" (u/slash base-name))}
                   opts))
 
+(defn ent-type-id-key
+  [ent-type route-ent-types expand-route-opts]
+  (or (:id-key expand-route-opts)
+      (ent-type route-ent-types)
+      (:default-id-key route-ent-types)
+      :id))
+
 (defn expand-route
   "In a pair of [n m], if n is a keyword then the pair is treated as a
   name route and is expanded. Otherwise the pair is returned
@@ -250,8 +255,9 @@
   ignore. By convention Sweet Tooth expects you to use names like
   `:my-app.backend.endpoint.user`, but you want to just use `user` to
   generate paths and route names - that's what the delimiter is for."
-  ([pair] (expand-route pair #"endpoint\."))
-  ([[ns opts :as pair] delimiter]
+  ([pair] (expand-route pair nil #"endpoint\."))
+  ([pair route-ent-types] (expand-route pair route-ent-types #"endpoint\."))
+  ([[ns opts :as pair] route-ent-types delimiter]
    (if (m/validate NameRoute pair)
      (let [base-name (-> (str ns)
                          (str/split delimiter)
@@ -263,7 +269,8 @@
            expanders (::expand-with opts [:collection :member])
            opts      (assoc opts
                             ::base-name base-name
-                            :ent-type ent-type)]
+                            :ent-type ent-type
+                            :id-key (ent-type-id-key ent-type route-ent-types opts))]
        (when-let [explanation (m/explain ExpandWith expanders)]
          (throw (ex-info (str "Invalid route expanders for " ns)
                          {:explain       explanation
@@ -286,8 +293,10 @@
   `delimiter` is a regex used to split the namespace \"base\" from its
   domain component: `foo.endpoint.user` -> `user`"
   ([pairs]
-   (expand-routes pairs #"endpoint\."))
-  ([pairs delimiter]
+   (expand-routes pairs nil #"endpoint\."))
+  ([pairs route-ent-types]
+   (expand-routes pairs route-ent-types #"endpoint\."))
+  ([pairs route-ent-types delimiter]
    (loop [common                {}
           [current & remaining] pairs
           routes                []]
@@ -296,6 +305,7 @@
            :else          (recur common
                                  remaining
                                  (into routes (expand-route (update current 1 #(mm/meta-merge common %))
+                                                            route-ent-types
                                                             delimiter)))))))
 
 (defn sanitize

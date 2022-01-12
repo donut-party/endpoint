@@ -7,6 +7,7 @@
 (deftest makes-routes
   (is (= [["/user"      {:name      :users
                          :ent-type  :user
+                         :id-key    :id
                          ::sut/ns   :ex.endpoint.user
                          ::sut/type :collection}]
           ["/user/{id}" {:name      :user
@@ -16,9 +17,23 @@
                          :id-key    :id}]]
          (sut/expand-route [:ex.endpoint.user]))))
 
+(deftest default-id-key
+  (is (= [["/user"      {:name      :users
+                         :ent-type  :user
+                         :id-key    :db/id
+                         ::sut/ns   :ex.endpoint.user
+                         ::sut/type :collection}]
+          ["/user/{db/id}" {:name      :user
+                            :ent-type  :user
+                            ::sut/ns   :ex.endpoint.user
+                            ::sut/type :member
+                            :id-key    :db/id}]]
+         (sut/expand-route [:ex.endpoint.user] {:default-id-key :db/id}))))
+
 (deftest nested-route
   (is (= [["/admin/user"      {:name      :admin.users
                                :ent-type  :user
+                               :id-key    :id
                                ::sut/ns   :ex.endpoint.admin.user
                                ::sut/type :collection}]
           ["/admin/user/{id}" {:name      :admin.user
@@ -32,6 +47,7 @@
   (testing "if you specify route types only those are included"
     (is (= [["/user" {:name      :users
                       :ent-type  :user
+                      :id-key    :id
                       ::sut/ns   :ex.endpoint.user
                       ::sut/type :collection}]]
            (sut/expand-route [:ex.endpoint.user {::sut/expand-with [:collection]}])))
@@ -73,6 +89,7 @@
   (testing "opts are shared across unary and coll"
     (is (= [["/user" {:name      :users
                       :ent-type  :user
+                      :id-key    :id
                       ::sut/ns   :ex.endpoint.user
                       ::sut/type :collection
                       :a         :b}]
@@ -88,6 +105,7 @@
   (testing "custom path construction"
     (is (= [["/boop" {:name      :users
                       :ent-type  :user
+                      :id-key    :id
                       ::sut/ns   :ex.endpoint.user
                       ::sut/type :collection}]
             ["/boop" {:name      :user
@@ -99,6 +117,7 @@
 
     (is (= [["/user/x" {:name      :users
                         :ent-type  :user
+                        :id-key    :id
                         ::sut/ns   :ex.endpoint.user
                         ::sut/type :collection}]
             ["/user/{id}/x" {:name      :user
@@ -111,6 +130,7 @@
 (deftest singleton
   (is (= [["/user" {:name      :user
                     :ent-type  :user
+                    :id-key    :id
                     ::sut/ns   :ex.endpoint.user
                     ::sut/type :singleton}]]
          (sut/expand-routes [[:ex.endpoint.user {::sut/expand-with [:singleton]}]]))))
@@ -169,6 +189,7 @@
   (testing "you can provide options to built-in expanders' paths"
     (is (= [["/custom-path" {:name      :users
                              :ent-type  :user
+                             :id-key    :id
                              ::sut/ns   :ex.endpoint.user
                              ::sut/type :collection}]
             ["/api/v1/user/{id}" {:id-key    :id
@@ -186,6 +207,7 @@
               ::sut/type :collection
               :name      :routes-load-handlerss
               :ent-type  :routes-load-handlers
+              :id-key    :id
               :get       {:handler :foo}}]
             ["/routes-load-handlers/{id}"
              {::sut/ns   :donut.endpoint.routes-load-handlers
