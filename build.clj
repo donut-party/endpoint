@@ -26,3 +26,12 @@
       (assoc :lib lib :version version)
       (bb/clean)
       (bb/jar)))
+
+(defn install "Install the JAR locally." [opts]
+  (-> opts
+      (assoc :lib lib :version version)
+      (bb/install)))
+
+(defn test "Run basic tests." [opts]
+  (-> opts
+      (bb/run-tests)))
