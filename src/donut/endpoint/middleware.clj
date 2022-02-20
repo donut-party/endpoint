@@ -1,8 +1,5 @@
 (ns donut.endpoint.middleware
-  "Defines a default middleware stack for donut apps.
-
-
-  "
+  "Defines a default middleware stack for donut apps."
   (:require [clojure.stacktrace :as cst]
             [reitit.ring.coercion :as rrc]
             [reitit.ring.middleware.muuntaja :as rrmm]

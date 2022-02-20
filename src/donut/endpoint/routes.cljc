@@ -348,3 +348,15 @@
                                            (::type opts))))
                   r))
               routes)))))
+
+;;---
+;; helpers
+;;---
+
+(defn routes-by-name
+  "produces a map with routes keyed by name"
+  [routes & [filter*]]
+  (cond->> routes
+    (fn? filter*)                 (filter filter*)
+    (= (type #"") (type filter*)) (filter (fn [[path]] (re-find filter* path)))
+    true                          (u/key-by (comp :name second))))
