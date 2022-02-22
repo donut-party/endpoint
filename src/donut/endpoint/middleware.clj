@@ -75,10 +75,6 @@
                 (resp/content-type "text/html")
                 (resp/status 200)))))))
 
-(defn not-found
-  [resp]
-  (update resp :status #(or % 404)))
-
 (defn wrap-not-found
   "Middleware that returns a 404 'Not Found' response from an error handler if
   the base handler returns nil.
@@ -89,9 +85,9 @@
   ([handler error-handler]
    (fn
      ([request]
-      (or (handler request) (not-found (error-handler request))))
+      (or (handler request) (error-handler request)))
      ([request respond raise]
-      (handler request #(respond (or % (not-found (error-handler request)))) raise)))))
+      (handler request #(respond (or % (error-handler request))) raise)))))
 
 (def ring-defaults-config
   "A default configuration for a browser-accessible website, based on current
