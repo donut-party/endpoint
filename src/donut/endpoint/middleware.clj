@@ -6,11 +6,12 @@
             [reitit.ring.middleware.parameters :as rrmp]
             [ring.middleware.defaults :as ring-defaults]
             [ring.middleware.gzip :as ring-gzip]
+            [ring.util.response :as resp]
             #_[ring.middleware.stacktrace :as ring-stacktrace]))
 
 (defn wrap-merge-params
   "Merge all params maps, place under `:all-params`"
-  [f]
+  [handler]
   (fn [req]
     (-> req
         (assoc :all-params (reduce (fn [p k] (merge p (get-in req k)))
@@ -27,21 +28,21 @@
                                     [:parameters :query]
                                     [:parameters :form]
                                     [:parameters :multipart]]))
-        f)))
+        handler)))
 
 (defn wrap-muuntaja-encode
   "TODO we want to muuntaja/encode because..."
-  [f]
+  [handler]
   (fn [req]
-    (-> (f req)
-        (assoc :muuntaja/encode true))))
+    (let [res (handler req)]
+      (assoc res :muuntaja/encode true))))
 
 (defn wrap-format-exception
   "Catches exceptions and returns a formatted response.
   TODO update this to use segment response?"
-  [f {:keys [include-data]}]
+  [handler {:keys [include-data]}]
   (fn [req]
-    (try (f req)
+    (try (handler req)
          (catch Throwable t
            {:status 500
             :body   [[:exception (if include-data
@@ -59,6 +60,20 @@
                     (rand (+ (- sleep-max sleep) sleep))
                     sleep))
     (handler req)))
+
+(defn wrap-default-index
+  [handler & [{:keys [root exclude status]
+               :or   {root    "public"
+                      exclude ["json"]
+                      status  404}}]]
+  (fn [req]
+    (or (handler req)
+        (let [content-type (str (get-in req [:headers "content-type"]))]
+          (if (some #(re-find (re-pattern %) content-type) exclude)
+            {:status status}
+            (-> (resp/resource-response "index.html" {:root root})
+                (resp/content-type "text/html")
+                (resp/status 200)))))))
 
 (defn not-found
   [resp]
@@ -89,7 +104,7 @@
    :session   {:flash        true
                :cookie-attrs {:http-only true
                               :same-site :strict}}
-   :security  {:anti-forgery         true
+   :security  {:anti-forgery         false
                :xss-protection       {:enable? true
                                       :mode    :block}
                :frame-options        :sameorigin
@@ -119,6 +134,7 @@
   (-> handler
       (wrap ring-gzip/wrap-gzip (get-in config [:gzip] true))
       (wrap wrap-latency (get-in config [:latency] false))
+      (wrap wrap-default-index (get-in config [:default-index] true))
       (wrap wrap-not-found (get-in config [:not-found] true))))
 
 (defn app-middleware
@@ -133,7 +149,8 @@
             (fn [handler] (app-middleware handler conf)))
    :conf  app-middleware-config})
 
-(def route-middleware
+(defn route-middleware
+  []
   [rrmp/parameters-middleware
    rrmm/format-middleware
    rrc/coerce-request-middleware
