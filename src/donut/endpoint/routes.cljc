@@ -360,3 +360,9 @@
     (fn? filter*)                 (filter filter*)
     (= (type #"") (type filter*)) (filter (fn [[path]] (re-find filter* path)))
     true                          (u/key-by (comp :name second))))
+
+(defn simple-routes
+  "stripped down view of routes"
+  [routes]
+  (mapv (fn [route] (update route 1 :name))
+        routes))
