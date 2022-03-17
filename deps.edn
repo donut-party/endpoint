@@ -8,6 +8,7 @@
          metosin/reitit-ring       {:mvn/version "0.5.15"}
          metosin/reitit-malli      {:mvn/version "0.5.15"}
          metosin/reitit-middleware {:mvn/version "0.5.15"}
+         ring/ring-defaults        {:mvn/version "0.3.3"}
          ring/ring                 {:mvn/version "1.9.4"}}
 
  :aliases
