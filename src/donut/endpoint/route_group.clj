@@ -6,6 +6,12 @@
    [reitit.ring.middleware.muuntaja :as rrmm]
    [reitit.ring.middleware.parameters :as rrmp]))
 
+(defn wrap-dependencies
+  "provide match data via :dependencies"
+  [handler]
+  (fn [req]
+    (handler (assoc req :dependencies (get-in req [:reitit.core/match :data])))))
+
 (defn wrap-merge-params
   "Merge all params maps, place under `:all-params`"
   [handler]
@@ -43,7 +49,8 @@
    rrc/coerce-request-middleware
    rrc/coerce-response-middleware
    wrap-merge-params
-   wrap-muuntaja-encode])
+   wrap-muuntaja-encode
+   wrap-dependencies])
 
 ;;---
 ;; route group component

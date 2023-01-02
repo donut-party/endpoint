@@ -14,3 +14,8 @@
                                       (:router-opts config)))
                  :config {:routes      [:donut.system/local-ref [:routes]]
                           :router-opts [:donut.system/local-ref [:router-opts]]}})
+
+(def RingHandlerComponent
+  #:donut.system{:start  (fn [{:keys [:donut.system/config]}]
+                           (rr/ring-handler (:router config)))
+                 :config {:router [:donut.system/local-ref [:router]]}})
