@@ -52,26 +52,26 @@
 (def default-group-opts
   {:middleware route-middleware})
 
-(defn routes-component-start
+(defn route-group-component-start
   [{:keys [:donut.system/config]}]
-  (let [{:keys [group-routes group-path group-opts]} config]
+  (let [{:keys [routes group-path group-opts]} config]
     [group-path
      (merge default-group-opts group-opts)
-     group-routes]))
+     routes]))
 
-(def routes-component-config
-  {:group-routes [:donut.system/local-ref [:group-routes]]
-   :group-path   [:donut.system/local-ref [:group-path]]
-   :group-opts   [:donut.system/local-ref [:group-opts]]})
+(def route-group-component-config
+  {:routes     [:donut.system/local-ref [:routes]]
+   :group-path [:donut.system/local-ref [:group-path]]
+   :group-opts [:donut.system/local-ref [:group-opts]]})
 
-(def RoutesComponent
-  #:donut.system{:start  routes-component-start
-                 :config routes-component-config})
+(def RouteGroupComponent
+  #:donut.system{:start  route-group-component-start
+                 :config route-group-component-config})
 
-(def RouteGroup
-  {:routes     RoutesComponent
-   :group-opts {}})
+(def RouteGroupComponentGroup
+  {:route-group RouteGroupComponent
+   :group-opts  {}})
 
 (defn route-group
   [components]
-  (merge RouteGroup components))
+  (merge RouteGroupComponentGroup components))
