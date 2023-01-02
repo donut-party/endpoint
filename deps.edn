@@ -1,16 +1,22 @@
 {:paths ["src"]
  :deps  {bk/ring-gzip              {:mvn/version "0.3.0"}
          org.clojure/clojure       {:mvn/version "1.10.3"}
-         meta-merge/meta-merge     {:mvn/version "1.0.0"}
          metosin/malli             {:mvn/version "0.6.1"}
-         metosin/reitit-ring       {:mvn/version "0.5.15"}
-         metosin/reitit-malli      {:mvn/version "0.5.15"}
-         metosin/reitit-middleware {:mvn/version "0.5.15"}
+         metosin/reitit-ring       {:mvn/version "0.5.18"}
+         metosin/reitit-malli      {:mvn/version "0.5.18"}
+         metosin/reitit-middleware {:mvn/version "0.5.18"}
          ring/ring-defaults        {:mvn/version "0.3.3"}
          ring/ring                 {:mvn/version "1.9.4"}}
 
  :aliases
- {:dev   {:extra-paths ["test"]}
-  :build {:deps       {io.github.seancorfield/build-clj
-                       {:git/tag "v0.6.6" :git/sha "171d5f1"}}
-          :ns-default build}}}
+ {:dev
+  {:extra-paths ["test"]}
+
+  :test
+  {:extra-paths ["test"]
+   :exec-fn cognitect.test-runner.api/test}
+
+  :build
+  {:deps       {io.github.seancorfield/build-clj
+                {:git/tag "v0.6.6" :git/sha "171d5f1"}}
+   :ns-default build}}}
