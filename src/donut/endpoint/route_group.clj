@@ -45,21 +45,33 @@
    wrap-merge-params
    wrap-muuntaja-encode])
 
+;;---
+;; route group component
+;;---
+
 (def default-group-opts
   {:middleware route-middleware})
 
-(def RouteGroupRoutesComponent
-  #:donut.system{:start  (fn [{:keys [:donut.system/config]}]
-                           (let [{:keys [group-routes group-path group-opts]} config]
-                             [group-path
-                              (merge default-group-opts group-opts)
-                              group-routes] ))
-                 :config {:group-routes [:donut.system/local-ref [:group-routes]]
-                          :group-path   [:donut.system/local-ref [:group-path]]
-                          :group-opts   [:donut.system/local-ref [:group-opts]]}})
+(defn routes-component-start
+  [{:keys [:donut.system/config]}]
+  (let [{:keys [group-routes group-path group-opts]} config]
+    [group-path
+     (merge default-group-opts group-opts)
+     group-routes]))
+
+(def routes-component-config
+  {:group-routes [:donut.system/local-ref [:group-routes]]
+   :group-path   [:donut.system/local-ref [:group-path]]
+   :group-opts   [:donut.system/local-ref [:group-opts]]})
+
+(def RoutesComponent
+  #:donut.system{:start  routes-component-start
+                 :config routes-component-config})
+
+(def RouteGroup
+  {:routes     RoutesComponent
+   :group-opts {}})
 
 (defn route-group
   [components]
-  (merge {:routes RouteGroupRoutesComponent
-          :group-opts {}}
-         components))
+  (merge RouteGroup components))
