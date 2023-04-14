@@ -15,6 +15,9 @@
     (handler req)))
 
 (defn wrap-default-index
+  "Frontend routing recognizes URLs that the backend might not recognize. This
+  will load an index.html file in those cases, thus loading the frontend app,
+  which can then frontend route the URL"
   [handler & [{:keys [root exclude status]
                :or   {root    "public"
                       exclude ["json"]
@@ -43,8 +46,7 @@
       (handler request #(respond (or % (error-handler request))) raise)))))
 
 (def ring-defaults-config
-  "A default configuration for a browser-accessible website, based on current
-  best practice."
+  "Default configuration for a donut API endpoint handler"
   {:params    {:urlencoded true
                :multipart  true
                :nested     true
@@ -94,6 +96,8 @@
 
 (def AppMiddlewareComponent
   "A donut.system component that applies configured middleware to a handler"
-  #:donut.system{:start (fn [{:keys [:donut.system/config]}]
+  #:donut.system{:doc   "Middleware stack optimized for donut framework apps. ::ds/config map give
+some control over individual middleware inclusion and configuration"
+                 :start (fn [{:keys [:donut.system/config]}]
                           (fn [handler] (app-middleware handler config)))
                  :config  app-middleware-config})
