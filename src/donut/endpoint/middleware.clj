@@ -1,6 +1,23 @@
 (ns donut.endpoint.middleware
   (:require
-   [ring.middleware.defaults :as ring-defaults]
+   [ring.middleware.x-headers :as x]
+   [ring.middleware.flash :refer [wrap-flash]]
+   [ring.middleware.session :refer [wrap-session]]
+   [ring.middleware.session.cookie :refer [cookie-store]]
+   [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+   [ring.middleware.nested-params :refer [wrap-nested-params]]
+   [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
+   [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+   [ring.middleware.params :refer [wrap-params]]
+   [ring.middleware.cookies :refer [wrap-cookies]]
+   [ring.middleware.resource :refer [wrap-resource]]
+   [ring.middleware.file :refer [wrap-file]]
+   [ring.middleware.not-modified :refer [wrap-not-modified]]
+   [ring.middleware.content-type :refer [wrap-content-type]]
+   [ring.middleware.default-charset :refer [wrap-default-charset]]
+   [ring.middleware.absolute-redirects :refer [wrap-absolute-redirects]]
+   [ring.middleware.ssl :refer [wrap-ssl-redirect wrap-hsts wrap-forwarded-scheme]]
+   [ring.middleware.proxy-headers :refer [wrap-forwarded-remote-addr]]
    [ring.middleware.gzip :as ring-gzip]
    [ring.util.response :as resp]))
 
@@ -45,59 +62,71 @@
      ([request respond raise]
       (handler request #(respond (or % (error-handler request))) raise)))))
 
-(def ring-defaults-config
-  "Default configuration for a donut API endpoint handler"
-  {:params    {:urlencoded true
-               :multipart  true
-               :nested     true
-               :keywordize true}
-   :cookies   true
-   :session   {:flash        false
-               :cookie-attrs {:http-only true
-                              :same-site :strict}}
-   :security  {:anti-forgery         false
-               :xss-protection       {:enable? true
-                                      :mode    :block}
-               :frame-options        :sameorigin
-               :content-type-options :nosniff}
-   :static    {:resources "public"}
-   :responses {:not-modified-responses true
-               :absolute-redirects     true
-               :content-types          true
-               :default-charset        "utf-8"}})
+(defmacro middleware-component
+  [f & [opts]]
+  `(merge {:name ~(keyword (name f))
+           :middleware ~f
+           :donut.system/doc (:doc (meta (var ~f)))}
+          ~opts))
 
-(def endpoint-defaults-config
-  {:gzip          true
-   :latency       false
-   :default-index true})
+(def donut-middleware-component-group-config
+  [(middleware-component wrap-anti-forgery {:disable? true})
+   (middleware-component wrap-flash {:disable? true})
+   {:name                :wrap-session
+    :donut.system/start  (fn [{:keys [:donut.system/config]}]
+                           {:name             :wrap-session
+                            :middleware       wrap-session
+                            :donut.system/doc (:doc (meta (var wrap-session)))
+                            :options          {:store (:session-store config)}})
+    :donut.system/config {:session-store [:donut.system/local-ref [:session-store]]}}
+   (middleware-component wrap-keyword-params)
+   (middleware-component wrap-nested-params)
+   (middleware-component wrap-multipart-params)
+   (middleware-component wrap-params)
+   (middleware-component wrap-cookies)
+   (middleware-component wrap-absolute-redirects)
+   (middleware-component wrap-resource {:options "public"})
+   (middleware-component wrap-file {:disable? true})
+   (middleware-component wrap-content-type)
+   (middleware-component wrap-default-charset {:options "utf-8"})
+   (middleware-component wrap-not-modified)
+   (middleware-component x/wrap-xss-protection {:disable? true})
+   (middleware-component x/wrap-frame-options {:options :sameorigin})
+   (middleware-component x/wrap-content-type-options {:options :nosniff})
+   (middleware-component wrap-hsts {:disable? true})
+   (middleware-component wrap-ssl-redirect {:disable? true})
+   (middleware-component wrap-forwarded-scheme {:disable? true})
+   (middleware-component wrap-forwarded-remote-addr {:disable? true})
+   (middleware-component ring-gzip/wrap-gzip)
+   (middleware-component wrap-latency {:disable? true})
+   (middleware-component wrap-default-index)
+   (middleware-component wrap-not-found)])
 
-(def app-middleware-config
-  (merge ring-defaults-config endpoint-defaults-config))
-
-(defn- wrap [handler middleware options]
-  (if (true? options)
-    (middleware handler)
-    (if options
-      (middleware handler options)
-      handler)))
-
-(defn- wrap-defaults [handler config]
-  (-> handler
-      (wrap ring-gzip/wrap-gzip (get-in config [:gzip] true))
-      (wrap wrap-latency (get-in config [:latency] false))
-      (wrap wrap-default-index (get-in config [:default-index] true))
-      (wrap wrap-not-found (get-in config [:not-found] true))))
-
-(defn app-middleware
-  [handler & [config]]
-  (-> handler
-      (ring-defaults/wrap-defaults (or config app-middleware-config))
-      (wrap-defaults (or config app-middleware-config))))
-
-(def AppMiddlewareComponent
-  "A donut.system component that applies configured middleware to a handler"
-  #:donut.system{:doc   "Middleware stack optimized for donut framework apps. ::ds/config map give
-some control over individual middleware inclusion and configuration"
+(def CookieSessionStoreComponent
+  #:donut.system{:doc   "Ring cookie session store"
                  :start (fn [{:keys [:donut.system/config]}]
-                          (fn [handler] (app-middleware handler config)))
-                 :config  app-middleware-config})
+                          (cookie-store (when (:key config)
+                                          {:key (:key config)})))})
+
+(def DonutMiddlewareComponent
+  "A donut.system component that applies configured middleware to a handler"
+  #:donut.system{:doc    "Middleware stack optimized for donut framework apps. ::ds/config map give
+some control over individual middleware inclusion and configuration"
+                 :start  (fn [{:keys [:donut.system/config]}]
+                           (fn [handler]
+                             (reduce (fn [handler {:keys [middleware options disable?]}]
+                                       (cond disable? handler
+                                             options  (middleware handler options)
+                                             :else    (middleware handler)))
+                                     handler
+                                     (:middleware config))))
+                 :config {:middleware (mapv (fn [m] [:donut.system/local-ref [(:name m)]])
+                                            donut-middleware-component-group-config)}})
+
+(def DonutMiddlewareComponentGroup
+  (-> (reduce (fn [group component-config]
+                (assoc group (:name component-config) component-config))
+              {}
+              donut-middleware-component-group-config)
+      (assoc :session-store CookieSessionStoreComponent
+             :donut-middleware DonutMiddlewareComponent)))
