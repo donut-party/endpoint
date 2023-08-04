@@ -1,6 +1,9 @@
 (ns donut.endpoint.route-group
   "Provides the happy path for including routes that serve as transit API
-  endpoints"
+  endpoints
+
+  Route Groups are a group of routes that have the same API prefix and share the
+  same options"
   (:require
    [reitit.ring.coercion :as rrc]
    [reitit.ring.middleware.muuntaja :as rrmm]

@@ -102,11 +102,21 @@
    (middleware-component wrap-default-index)
    (middleware-component wrap-not-found)])
 
+(defn- valid-secret-key? [key]
+  (and (= (type (byte-array 0)) (type key))
+       (= (count key) 16)))
+
 (def CookieSessionStoreComponent
-  #:donut.system{:doc   "Ring cookie session store"
+  #:donut.system{:doc   "Ring cookie session store. Set cookie's session under [::ds/config :key].
+Using a random key will invalidate cookies between server restarts."
                  :start (fn [{:keys [:donut.system/config]}]
-                          (cookie-store (when (:key config)
-                                          {:key (:key config)})))})
+                          (when-not (valid-secret-key? (:key config))
+                            (throw (ex-info "Must supply byte array of exactly 16 bytes under [::ds/config :key] for this component
+Use e.g. one of:
+- (crypto.random/bytes 16)
+- (byte-array [76 123 -88 -31 -122 -128 19 -14 -112 -108 125 0 19 -52 108 -35]]) "
+                                            {:provided-config config})))
+                          (cookie-store config))})
 
 (def DonutMiddlewareComponent
   "A donut.system component that applies configured middleware to a handler"
