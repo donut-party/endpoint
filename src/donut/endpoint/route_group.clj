@@ -13,7 +13,10 @@
   "provide match data via :dependencies"
   [handler]
   (fn [req]
-    (handler (assoc req :dependencies (get-in req [:reitit.core/match :data])))))
+    (handler (assoc req
+                    :dependencies
+                    (merge (get-in req [:reitit.core/match :data])
+                           (get-in req [:reitit.core/match :data (:request-method req)]))))))
 
 (defn wrap-merge-params
   "Merge all params maps, place under `:all-params`"

@@ -9,7 +9,7 @@
 (def HTTPComponentGroup
   {::ds/doc    "HTTP framework defaults for full-stack donut apps"
    :server     des/ServerComponent
-   :middleware dem/AppMiddlewareComponent
+   :middleware dem/DonutMiddlewareComponent
    :handler    deh/HandlerComponent})
 
 (def http-plugin
