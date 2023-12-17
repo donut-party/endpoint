@@ -86,5 +86,5 @@
    :shared-opts {}})
 
 (defn route-group
-  [& [components]]
+  [& components]
   (apply merge RouteGroupComponentGroup components))
