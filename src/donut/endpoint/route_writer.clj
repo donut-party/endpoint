@@ -24,7 +24,8 @@
                               x))
                           routes)
            pp/pprint
-           with-out-str)))
+           with-out-str)
+       ")"))
 
 (def RouteWriterComponent
   {::ds/start (fn [{:keys [::ds/config]}]
