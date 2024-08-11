@@ -6,6 +6,7 @@
          metosin/reitit-ring       {:mvn/version "0.5.18"}
          metosin/reitit-malli      {:mvn/version "0.5.18"}
          metosin/reitit-middleware {:mvn/version "0.5.18"}
+         party.donut/sugar         {:mvn/version "0.0.19"}
          ring/ring-defaults        {:mvn/version "0.3.3"}
          ring/ring                 {:mvn/version "1.9.4"}}
 

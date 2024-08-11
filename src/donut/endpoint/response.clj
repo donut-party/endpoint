@@ -4,5 +4,6 @@
 (defn errors-response
   [malli-schema params]
   (when-let [feedback (dsu/feedback malli-schema params)]
-    {:status 422
-     :body   [[:errors {:attrs feedback}]]}))
+    {:status   422
+     :feedback feedback
+     :body     [[:errors {:attrs feedback}]]}))
