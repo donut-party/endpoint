@@ -1,5 +1,6 @@
 (ns donut.endpoint.middleware
   (:require
+   [donut.endpoint.middleware.instrument :as instrument]
    [ring.middleware.x-headers :as x]
    [ring.middleware.flash :refer [wrap-flash]]
    [ring.middleware.session :refer [wrap-session]]
@@ -70,7 +71,8 @@
           ~opts))
 
 (def donut-middleware-component-group-config
-  [(middleware-component wrap-anti-forgery {:disable? true})
+  [(middleware-component instrument/wrap-log-app-handler)
+   (middleware-component wrap-anti-forgery {:disable? true})
    (middleware-component wrap-flash {:disable? true})
    {:name                :wrap-session
     :donut.system/start  (fn [{:keys [:donut.system/config]}]
@@ -100,7 +102,8 @@
    (middleware-component ring-gzip/wrap-gzip)
    (middleware-component wrap-latency {:disable? true})
    (middleware-component wrap-default-index)
-   (middleware-component wrap-not-found)])
+   (middleware-component wrap-not-found)
+   (middleware-component instrument/wrap-outer-context)])
 
 (defn- valid-secret-key? [key]
   (and (= (type (byte-array 0)) (type key))

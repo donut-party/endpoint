@@ -1,14 +1,17 @@
 {:paths ["src"]
- :deps  {bk/ring-gzip              {:mvn/version "0.3.0"}
-         org.clojure/clojure       {:mvn/version "1.10.3"}
-         metosin/malli             {:mvn/version "0.6.1"}
-         metosin/muuntaja          {:mvn/version "0.6.8"}
-         metosin/reitit-ring       {:mvn/version "0.5.18"}
-         metosin/reitit-malli      {:mvn/version "0.5.18"}
-         metosin/reitit-middleware {:mvn/version "0.5.18"}
-         party.donut/sugar         {:mvn/version "0.0.19"}
-         ring/ring-defaults        {:mvn/version "0.3.3"}
-         ring/ring                 {:mvn/version "1.9.4"}}
+ :deps  {bk/ring-gzip                             {:mvn/version "0.3.0"}
+         com.github.steffan-westcott/clj-otel-api {:mvn/version "0.2.7"}
+         com.taoensso/telemere                    {:mvn/version "1.0.0-beta22"}
+         com.taoensso/telemere-slf4j              {:mvn/version "1.0.0-beta22"}
+         metosin/malli                            {:mvn/version "0.6.1"}
+         metosin/muuntaja                         {:mvn/version "0.6.8"}
+         metosin/reitit-malli                     {:mvn/version "0.5.18"}
+         metosin/reitit-middleware                {:mvn/version "0.5.18"}
+         metosin/reitit-ring                      {:mvn/version "0.5.18"}
+         org.clojure/clojure                      {:mvn/version "1.10.3"}
+         party.donut/sugar                        {:mvn/version "0.0.19"}
+         ring/ring                                {:mvn/version "1.9.4"}
+         ring/ring-defaults                       {:mvn/version "0.3.3"}}
 
  :aliases
  {:dev
