@@ -71,8 +71,7 @@
           ~opts))
 
 (def donut-middleware-component-group-config
-  [(middleware-component instrument/wrap-log-app-handler)
-   (middleware-component wrap-anti-forgery {:disable? true})
+  [(middleware-component wrap-anti-forgery {:disable? true})
    (middleware-component wrap-flash {:disable? true})
    {:name                :wrap-session
     :donut.system/start  (fn [{:keys [:donut.system/config]}]

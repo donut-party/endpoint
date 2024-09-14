@@ -50,4 +50,6 @@
        (telemere/with-ctx+ (req->ctx ctx)
          (let [response (handler req)]
            (telemere/event! :application.request/handled)
+           (telemere/event! :application.request/handler-ring-response
+                            {:data response})
            response))))))

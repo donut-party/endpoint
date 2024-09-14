@@ -5,6 +5,7 @@
   Route Groups are a group of routes that have the same API prefix and share the
   same options"
   (:require
+   [donut.endpoint.middleware.instrument :as instrument]
    [reitit.ring.coercion :as rrc]
    [reitit.ring.middleware.muuntaja :as rrmm]
    [reitit.ring.middleware.parameters :as rrmp]))
@@ -56,7 +57,8 @@
    rrc/coerce-response-middleware
    wrap-merge-params
    wrap-muuntaja-encode
-   wrap-dependencies])
+   wrap-dependencies
+   instrument/wrap-log-app-handler])
 
 ;;---
 ;; route group component
