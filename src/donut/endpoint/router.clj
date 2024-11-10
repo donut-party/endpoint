@@ -1,12 +1,14 @@
 (ns donut.endpoint.router
   (:require
-   [muuntaja.core :as m]
+   [donut.endpoint.encoding :as denc]
    [reitit.coercion.malli :as rcm]
    [reitit.ring :as rr]))
 
+(def transit-format "application/transit+json")
+
 (def router-opts
   {:data {:coercion rcm/coercion
-          :muuntaja m/instance}})
+          :muuntaja denc/default-muuntaja-instance}})
 
 (def RouterComponent
   #:donut.system{:start  (fn [{:keys [:donut.system/config]}]
