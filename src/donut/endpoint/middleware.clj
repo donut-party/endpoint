@@ -1,5 +1,6 @@
 (ns donut.endpoint.middleware
   (:require
+   [donut.endpoint.middleware.exception :as exception]
    [donut.endpoint.middleware.instrument :as instrument]
    [ring.middleware.x-headers :as x]
    [ring.middleware.flash :refer [wrap-flash]]
@@ -102,7 +103,9 @@
    (middleware-component wrap-latency {:disable? true})
    (middleware-component wrap-default-index)
    (middleware-component wrap-not-found)
+   (middleware-component exception/wrap-catch-exception)
    (middleware-component instrument/wrap-outer-context)])
+
 
 (defn- valid-secret-key? [key]
   (and (= (type (byte-array 0)) (type key))

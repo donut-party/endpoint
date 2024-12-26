@@ -1,8 +1,8 @@
 {:paths ["src"]
  :deps  {bk/ring-gzip                             {:mvn/version "0.3.0"}
          com.github.steffan-westcott/clj-otel-api {:mvn/version "0.2.7"}
-         com.taoensso/telemere                    {:mvn/version "1.0.0-beta22"}
-         com.taoensso/telemere-slf4j              {:mvn/version "1.0.0-beta22"}
+         com.taoensso/telemere                    {:mvn/version "1.0.0-v1.0.0-RC2"}
+         com.taoensso/telemere-slf4j              {:mvn/version "1.0.0-v1.0.0-RC2"}
          metosin/malli                            {:mvn/version "0.6.1"}
          metosin/muuntaja                         {:mvn/version "0.6.8"}
          metosin/reitit-malli                     {:mvn/version "0.5.18"}

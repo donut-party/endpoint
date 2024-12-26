@@ -8,9 +8,11 @@
 
 (defn req->outer-ctx
   [req]
-  {:trace-id                   (when otel-enabled? (.getTraceId (span/get-span-context)))
-   :application.request/uri    (:uri req)
-   :application.request/method (:request-method req)})
+  {:application.request/uri    (:uri req)
+   :application.request/method (:request-method req)
+   :otel/trace-id              (if otel-enabled?
+                                 (.getTraceId (span/get-span-context))
+                                 (str (random-uuid)))})
 
 (defn outer-response-data
   [{:keys [status headers] :as _response}]
@@ -34,10 +36,15 @@
                             {:data (response-data response)})
            response))))))
 
-;; TODO query params
+;; TODO make it safer; don't log sensitive info
+(defn logging-safe-params
+  [params]
+  params)
+
 (defn req->app-handler-ctx
   [req]
-  {:request/username (-> req :session :identity)})
+  {:application.request/username (-> req :session :identity)
+   :application.request/params   (-> req :all-params logging-safe-params)})
 
 (defn wrap-log-app-handler
   ([handler]
@@ -47,9 +54,10 @@
    (fn wrap-log-app-handler-handler [req]
      (let [ctx (req->ctx req)]
        (span/add-span-data! {:attributes ctx})
+       ;; TODO figure out how to configure this
        (telemere/with-ctx+ (req->ctx ctx)
          (let [response (handler req)]
-           (telemere/event! :application.request/handled)
+           #_
            (telemere/event! :application.request/handler-ring-response
                             {:data response})
            response))))))
