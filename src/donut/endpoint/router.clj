@@ -1,10 +1,16 @@
 (ns donut.endpoint.router
   (:require
    [donut.endpoint.encoding :as denc]
+   [malli.transform :as mt]
    [reitit.coercion.malli :as rcm]
    [reitit.ring :as rr]))
 
 (def transit-format "application/transit+json")
+
+(def coercion
+  (-> rcm/default-options
+      (assoc-in [:transformers :body :default] mt/json-transformer)
+      rcm/create))
 
 (def router-opts
   {:data {:coercion rcm/coercion
