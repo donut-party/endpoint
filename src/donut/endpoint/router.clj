@@ -1,7 +1,6 @@
 (ns donut.endpoint.router
   (:require
    [donut.endpoint.encoding :as denc]
-   [malli.transform :as mt]
    [reitit.coercion.malli :as rcm]
    [reitit.ring :as rr]))
 
@@ -9,11 +8,11 @@
 
 (def coercion
   (-> rcm/default-options
-      (assoc-in [:transformers :body :default] mt/json-transformer)
+      (assoc-in [:transformers :body :default] rcm/json-transformer-provider)
       rcm/create))
 
 (def router-opts
-  {:data {:coercion rcm/coercion
+  {:data {:coercion coercion
           :muuntaja denc/default-muuntaja-instance}})
 
 (def RouterComponent
