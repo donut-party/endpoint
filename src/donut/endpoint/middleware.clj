@@ -71,7 +71,7 @@
            :donut.system/doc (:doc (meta (var ~f)))}
           ~opts))
 
-(def donut-middleware-component-group-config
+(def donut-default-middlewares
   [(middleware-component wrap-anti-forgery {:disable? true})
    (middleware-component wrap-flash {:disable? true})
    {:name                :wrap-session
@@ -123,9 +123,9 @@ Use e.g. one of:
                                             {:provided-config config})))
                           (cookie-store config))})
 
-(def DonutMiddlewareComponent
-  "A donut.system component that applies configured middleware to a handler"
-  #:donut.system{:doc    "Middleware stack optimized for donut framework apps. ::ds/config map give
+(defn mk-middleware-component
+  [middleware]
+  #:donut.system{:doc    "Middleware stack optimized for donut framework apps. ::ds/config map gives
 some control over individual middleware inclusion and configuration"
                  :start  (fn [{:keys [:donut.system/config]}]
                            (fn [handler]
@@ -136,12 +136,22 @@ some control over individual middleware inclusion and configuration"
                                      handler
                                      (:middleware config))))
                  :config {:middleware (mapv (fn [m] [:donut.system/local-ref [(:name m)]])
-                                            donut-middleware-component-group-config)}})
+                                            middleware)}})
+
+(def DonutMiddlewareComponent
+  "A donut.system component that applies configured middleware to a handler"
+  (mk-middleware-component donut-default-middlewares))
+
+(defn mk-middleware-component-group
+  ([] (mk-middleware-component-group []))
+  ([more-middleware]
+   (let [all-middleware       (into donut-default-middlewares more-middleware)
+         component-group-base {:session-store    CookieSessionStoreComponent
+                               :donut-middleware (mk-middleware-component all-middleware)}]
+     (reduce (fn [group component-config]
+               (assoc group (:name component-config) component-config))
+             component-group-base
+             all-middleware))))
 
 (def DonutMiddlewareComponentGroup
-  (-> (reduce (fn [group component-config]
-                (assoc group (:name component-config) component-config))
-              {}
-              donut-middleware-component-group-config)
-      (assoc :session-store CookieSessionStoreComponent
-             :donut-middleware DonutMiddlewareComponent)))
+  (mk-middleware-component-group donut-default-middlewares))
