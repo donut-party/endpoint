@@ -71,7 +71,7 @@
            :donut.system/doc (:doc (meta (var ~f)))}
           ~opts))
 
-(def donut-default-middlewares
+(def donut-default-middleware-components
   [(middleware-component wrap-anti-forgery {:disable? true})
    (middleware-component wrap-flash {:disable? true})
    {:name                :wrap-session
@@ -140,12 +140,12 @@ some control over individual middleware inclusion and configuration"
 
 (def DonutMiddlewareComponent
   "A donut.system component that applies configured middleware to a handler"
-  (mk-middleware-component donut-default-middlewares))
+  (mk-middleware-component donut-default-middleware-components))
 
 (defn mk-middleware-component-group
   ([] (mk-middleware-component-group []))
   ([more-middleware]
-   (let [all-middleware       (into donut-default-middlewares more-middleware)
+   (let [all-middleware       (into donut-default-middleware-components more-middleware)
          component-group-base {:session-store    CookieSessionStoreComponent
                                :donut-middleware (mk-middleware-component all-middleware)}]
      (reduce (fn [group component-config]
@@ -154,4 +154,4 @@ some control over individual middleware inclusion and configuration"
              all-middleware))))
 
 (def DonutMiddlewareComponentGroup
-  (mk-middleware-component-group donut-default-middlewares))
+  (mk-middleware-component-group))
