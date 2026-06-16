@@ -145,7 +145,7 @@ some control over individual middleware inclusion and configuration"
 (defn mk-middleware-component-group
   ([] (mk-middleware-component-group []))
   ([more-middleware]
-   (let [all-middleware       (into donut-default-middleware-components more-middleware)
+   (let [all-middleware       (into more-middleware donut-default-middleware-components)
          component-group-base {:session-store    CookieSessionStoreComponent
                                :donut-middleware (mk-middleware-component all-middleware)}]
      (reduce (fn [group component-config]

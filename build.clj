@@ -19,7 +19,7 @@
 
 (defn- pom-template [version]
   [[:description "endpoint helpers for the cute lil framework"]
-   [:url "https://github.com/donut-power/endpoint"]
+   [:url "https://github.com/donut-party/endpoint"]
    [:licenses
     [:license
      [:name "MIT"]
@@ -28,9 +28,9 @@
     [:developer
      [:name "Daniel Higginbotham"]]]
    [:scm
-    [:url "https://github.com/donut-power/endpoint"]
-    [:connection "scm:git:https://github.com/donut-power/endpoint.git"]
-    [:developerConnection "scm:git:ssh:git@github.com:donut-power/endpoint.git"]
+    [:url "https://github.com/donut-party/endpoint"]
+    [:connection "scm:git:https://github.com/donut-party/endpoint.git"]
+    [:developerConnection "scm:git:ssh:git@github.com:donut-party/endpoint.git"]
     [:tag (str "v" version)]]])
 
 (defn- jar-opts [opts]
@@ -58,3 +58,9 @@
     (dd/deploy {:installer :remote :artifact (b/resolve-path jar-file)
                 :pom-file (b/pom-path (select-keys opts [:lib :class-dir]))}))
   opts)
+
+(defn install [opts]
+  (let [opts (jar-opts opts)]
+    (jar opts)
+    (b/install opts)
+    (println version)))
