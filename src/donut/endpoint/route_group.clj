@@ -6,6 +6,7 @@
   same options"
   (:require
    [donut.endpoint.middleware.instrument :as instrument]
+   [donut.sugar.utils :as dsu]
    [reitit.ring.coercion :as rrc]
    [reitit.ring.middleware.muuntaja :as rrmm]
    [reitit.ring.middleware.parameters :as rrmp]))
@@ -48,11 +49,40 @@
     (let [res (handler req)]
       (assoc res :muuntaja/encode true))))
 
+(def request-coercion-error-message
+  "check the highlighted fields")
+
+(defn request-coercion-errors-response
+  "A 422 response with donut's error segment for a reitit request coercion
+  exception's data: `[[:errors {:form [msg] :attrs {[:k] [\"msg\"]}}]]`, attrs
+  humanized with `donut.sugar.utils/feedback-humanize` (keyed by attr path
+  vector, as `donut.endpoint.response/errors-response` does)"
+  [coercion-ex-data]
+  (let [attrs (dsu/feedback-humanize coercion-ex-data)]
+    {:status 422
+     :body   [[:errors (cond-> {:form [request-coercion-error-message]}
+                         attrs (assoc :attrs attrs))]]}))
+
+(defn wrap-request-coercion-errors
+  "Answer reitit request coercion failures with a 422 error segment instead of
+  letting the exception escape as a 500. Must sit inside muuntaja's format
+  middleware so the body is encoded."
+  [handler]
+  (fn [req]
+    (try
+      (handler req)
+      (catch clojure.lang.ExceptionInfo e
+        (let [data (ex-data e)]
+          (if (= :reitit.coercion/request-coercion (:type data))
+            (request-coercion-errors-response data)
+            (throw e)))))))
+
 (def route-middleware
   "This is route middleware because it's applied after reitit matches a route; it
   relies on route info."
   [rrmp/parameters-middleware
    rrmm/format-middleware
+   wrap-request-coercion-errors
    rrc/coerce-request-middleware
    rrc/coerce-response-middleware
    wrap-merge-params
